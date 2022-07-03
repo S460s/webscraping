@@ -2,6 +2,16 @@ const fs = require('fs/promises');
 
 const sleep = async (ms) => new Promise((res) => setTimeout(res, ms));
 
+async function createDirs() {
+  ['./data', './archive'].forEach(async (filename) => {
+    try {
+      await fs.access(filename);
+    } catch (err) {
+      await fs.mkdir(filename);
+    }
+  });
+}
+
 async function saveData(data, filename = 'data') {
   await fs.writeFile(`./data/${filename}.json`, JSON.stringify(data));
 }
@@ -54,4 +64,11 @@ async function getNewVids(videos, name) {
   return newVideos;
 }
 
-module.exports = { sleep, saveData, getData, getNewVids, printData };
+module.exports = {
+  sleep,
+  saveData,
+  getData,
+  getNewVids,
+  printData,
+  createDirs,
+};

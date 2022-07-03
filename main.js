@@ -4,7 +4,13 @@ const INTERVAL_IN_MIN = 60;
 const puppeteer = require('puppeteer');
 const colors = require('colors');
 
-const { saveData, sleep, printData, getNewVids } = require('./utils');
+const {
+  saveData,
+  sleep,
+  printData,
+  getNewVids,
+  createDirs,
+} = require('./utils');
 
 function parseData() {
   const titles = Array.from(
@@ -61,6 +67,7 @@ async function main(name) {
 }
 
 async function start(name) {
+  await createDirs();
   console.log(`Starting (${name})...`.bgRed);
   await main(name);
   console.log(`Done, waiting ${INTERVAL_IN_MIN}.`.bgRed);
