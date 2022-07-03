@@ -1,9 +1,9 @@
 const puppeteer = require('puppeteer');
 const colors = require('colors');
 
-const { saveData, getData, sleep } = require('./utils');
+const { saveData, sleep, printData, getNewVids } = require('./utils');
 
-const SEARCH_PARAM = 'caruan';
+const SEARCH_PARAM = 'caruana';
 const BASE_URL = `https://www.youtube.com/results?search_query=${SEARCH_PARAM}&sp=CAI%253D`;
 
 function parseData() {
@@ -27,33 +27,6 @@ function parseData() {
   return data;
 }
 
-function printData(data) {
-  if (data.length === 0) {
-    console.log('No new videos.');
-  }
-
-  data.forEach(({ title, link, timeAgo }) => {
-    console.log(
-      `${title} ${'posted'.gray} ${timeAgo.green} ${'->'.gray} ${link.cyan}\n`
-    );
-  });
-}
-
-async function getNewVids(videos) {
-  const oldVideos = await getData(SEARCH_PARAM);
-  if (oldVideos.length === 0) return videos;
-
-  const newVideos = [];
-
-  for (let i = 0; i < videos.length; i++) {
-    if (oldVideos[i].title !== videos[i].title) {
-      newVideos.push(videos[i]);
-    }
-  }
-
-  return newVideos;
-}
-
 async function main() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -68,7 +41,7 @@ async function main() {
   await sleep(750);
 
   const data = await page.evaluate(parseData);
-  const newVids = await getNewVids(data);
+  const newVids = await getNewVids(data, SEARCH_PARAM);
   await saveData(data, `${SEARCH_PARAM}`);
   printData(newVids);
   await browser.close();
