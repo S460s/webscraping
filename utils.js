@@ -16,10 +16,6 @@ async function getData(filename = 'data') {
 }
 
 function printData(data) {
-  if (data.length === 0) {
-    return console.log('No new videos.');
-  }
-
   data.forEach(({ title, link, timeAgo }) => {
     console.log(
       `${title} ${'posted'.gray} ${timeAgo.green} ${'->'.gray} ${link.cyan}\n`
@@ -28,16 +24,15 @@ function printData(data) {
 }
 
 async function archive(name, data) {
-  console.log(data);
   let str = '';
   data.forEach(
     ({ title, link, timeAgo }) =>
       (str += `${title} 'posted' ${timeAgo} -> ${link}\n`)
   );
-  console.log(str.red);
   await fs.appendFile(`./archive/${name}.txt`, str);
 }
 
+// doesn't follow the single resposibility principle
 async function getNewVids(videos, name) {
   const oldVideos = await getData(name);
   if (oldVideos.length === 0) {
@@ -45,14 +40,17 @@ async function getNewVids(videos, name) {
     return videos;
   }
 
+  // HACK/REFACTOR
   const newVideos = [];
+  const titles = oldVideos.map((vid) => vid.title);
 
   for (let i = 0; i < videos.length; i++) {
-    if (oldVideos[i].title !== videos[i].title) {
+    if (!titles.includes(videos[i].title)) {
       newVideos.push(videos[i]);
     }
   }
-  archive(newVideos);
+
+  archive(name, newVideos);
   return newVideos;
 }
 
