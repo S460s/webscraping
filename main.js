@@ -3,7 +3,7 @@ const colors = require('colors');
 
 const { saveData, getData, sleep } = require('./utils');
 
-const SEARCH_PARAM = 'slavi';
+const SEARCH_PARAM = 'caruan';
 const BASE_URL = `https://www.youtube.com/results?search_query=${SEARCH_PARAM}&sp=CAI%253D`;
 
 function parseData() {
@@ -40,7 +40,9 @@ function printData(data) {
 }
 
 async function getNewVids(videos) {
-  const oldVideos = await getData();
+  const oldVideos = await getData(SEARCH_PARAM);
+  if (oldVideos.length === 0) return videos;
+
   const newVideos = [];
 
   for (let i = 0; i < videos.length; i++) {
@@ -67,7 +69,7 @@ async function main() {
 
   const data = await page.evaluate(parseData);
   const newVids = await getNewVids(data);
-  await saveData(data);
+  await saveData(data, `${SEARCH_PARAM}`);
   printData(newVids);
   await browser.close();
 }
