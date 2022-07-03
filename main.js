@@ -1,20 +1,10 @@
 const puppeteer = require('puppeteer');
-const fs = require('fs/promises');
 const colors = require('colors');
 
-const SEARCH_PARAM = 'caruana';
+const { saveData, getData, sleep } = require('./utils');
+
+const SEARCH_PARAM = 'slavi';
 const BASE_URL = `https://www.youtube.com/results?search_query=${SEARCH_PARAM}&sp=CAI%253D`;
-
-const sleep = async (ms) => new Promise((res) => setTimeout(res, ms));
-
-async function saveData(data) {
-  await fs.writeFile('./data/data.json', JSON.stringify(data));
-}
-
-async function getData(path = './data/data.json') {
-  const data = await fs.readFile(path);
-  return JSON.parse(data);
-}
 
 function parseData() {
   const titles = Array.from(
@@ -29,19 +19,16 @@ function parseData() {
     document.querySelectorAll('#metadata-line > span:nth-child(2)')
   ).map((el) => el.outerText);
 
-  const old_data = await getData();
   const data = [];
   for (let i = 0; i < titles.length; i++) {
-    if(old_data[i].title !== titles[i])
-      data.push({ title: titles[i], link: links[i], timeAgo: times[i] });
+    data.push({ title: titles[i], link: links[i], timeAgo: times[i] });
   }
 
   return data;
 }
 
-
 function printData(data) {
-  if(data.length === 0){
+  if (data.length === 0) {
     console.log('No new videos.');
   }
 
@@ -50,6 +37,19 @@ function printData(data) {
       `${title} ${'posted'.gray} ${timeAgo.green} ${'->'.gray} ${link.cyan}\n`
     );
   });
+}
+
+async function getNewVids(videos) {
+  const oldVideos = await getData();
+  const newVideos = [];
+
+  for (let i = 0; i < videos.length; i++) {
+    if (oldVideos[i].title !== videos[i].title) {
+      newVideos.push(videos[i]);
+    }
+  }
+
+  return newVideos;
 }
 
 async function main() {
@@ -66,8 +66,9 @@ async function main() {
   await sleep(750);
 
   const data = await page.evaluate(parseData);
+  const newVids = await getNewVids(data);
   await saveData(data);
-  printData(data);
+  printData(newVids);
   await browser.close();
 }
 
