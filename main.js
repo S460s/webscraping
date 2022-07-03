@@ -1,3 +1,6 @@
+const PPL = ['caruana', 'Topalov', 'magnus'];
+const INTERVAL_IN_MIN = 60;
+
 const puppeteer = require('puppeteer');
 const colors = require('colors');
 
@@ -25,9 +28,8 @@ function parseData() {
   return data;
 }
 
-async function main() {
-  const SEARCH_PARAM = 'caruana';
-  const BASE_URL = `https://www.youtube.com/results?search_query=${SEARCH_PARAM}&sp=CAI%253D`;
+async function main(name) {
+  const BASE_URL = `https://www.youtube.com/results?search_query=${name}&sp=CAI%253D`;
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -46,29 +48,34 @@ async function main() {
   await sleep(750);
 
   const data = await page.evaluate(parseData);
-  console.log(data.length);
 
-  const newVids = await getNewVids(data, SEARCH_PARAM);
+  const newVids = await getNewVids(data, name);
   if (newVids.length === 0) {
     console.log('No new videos.'.red);
   } else {
-    await saveData(data, SEARCH_PARAM);
+    await saveData(data, name);
     printData(newVids);
   }
 
   await browser.close();
 }
 
-async function start(seconds) {
-  console.log('Starting...'.bgRed);
-  await main();
-  console.log(`Done, waiting ${seconds}.`.bgRed);
+async function start(name) {
+  console.log(`Starting (${name})...`.bgRed);
+  await main(name);
+  console.log(`Done, waiting ${INTERVAL_IN_MIN}.`.bgRed);
 
   setInterval(async () => {
     console.log('Starting...'.bgRed);
-    await main();
-    console.log(`Done, waiting ${seconds}.`.bgRed);
-  }, seconds * 1000);
+    await main(name);
+    console.log(`Done, waiting ${INTERVAL_IN_MIN} minutes.`.bgRed);
+  }, INTERVAL_IN_MIN * 1000 * 60);
 }
 
-start(20);
+async function launch() {
+  for (let i = 0; i < PPL.length; i++) {
+    await start(PPL[i]);
+  }
+}
+
+launch();

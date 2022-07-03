@@ -18,7 +18,7 @@ async function getData(filename = 'data') {
 function printData(data) {
   data.forEach(({ title, link, timeAgo }) => {
     console.log(
-      `${title} ${'posted'.gray} ${timeAgo.green} ${'->'.gray} ${link.cyan}\n`
+      `${title} ${'posted'.gray} ${timeAgo?.green} ${'->'.gray} ${link?.cyan}\n`
     );
   });
 }
